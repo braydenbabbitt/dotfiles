@@ -1,3 +1,6 @@
+:: Batch script that limits the audiodg process from VoiceMeeter to one CPU core to avoid conflicts with Discord
+:: This fixes a crackling audio issue that is known to be caused by a conflict between those two programs
+
 @echo off
 
 :: Get administrator priviliges
