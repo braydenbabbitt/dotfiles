@@ -6,8 +6,7 @@ frontend_session_name="modular-music-fe"
 backend_session_name="modular-music-be"
 group_name="modular-music"
 
-tmux new-session -d -s $frontend_session_name -A -t $group_name -c $frontend_dir
-tmux new-window -n fe-nvim
+tmux new-session -d -s $frontend_session_name -n fe-nvim -A -t $group_name -c $frontend_dir
 tmux send-keys "nvim ." C-m
 tmux new-window -n fe-term
 tmux send-keys "npm i && npm run dev" C-m
