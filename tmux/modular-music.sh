@@ -2,17 +2,22 @@
 
 frontend_dir=""
 backend_dir=""
-frontend_session_name="modular-music-fe"
-backend_session_name="modular-music-be"
-group_name="modular-music"
+session_name="modular-music"
 
-tmux new-session -s $frontend_session_name -n fe-nvim -A -t $group_name -c $frontend_dir
+# Start session
+tmux new-session -d -s $session_name -n "fe-nvim" -c $frontend_dir
 tmux send-keys "nvim ." C-m
-tmux new-window -n fe-term
-tmux send-keys "npm i && npm run dev" C-m
 
-tmux new-session -d -s $backend_session_name -A -t $group_name -c $backend_dir
-tmux new-window -n be-nvim
+# Create remaining windows
+tmux new-window -t $session_name:1 -n "fe-term"
+tmux send-keys "cd $frontend_dir && npm i && npm run dev" C-m
+
+tmux new-window -t $session_name:2 -n "be-nvim" -c $backend_dir
 tmux send-keys "nvim ." C-m
-tmux new-window -n be-term -d
-tmux select-window -t fe-nvim
+
+tmux new-window -t $session_name:3 -n "be-term"
+tmux send-keys "cd $backend_dir" C-m
+
+# Select first window and attach
+tmux select-window -t "${session_name}:0"
+tmux attach-session -t $session_name
