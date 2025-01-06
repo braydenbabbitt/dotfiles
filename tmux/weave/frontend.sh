@@ -9,14 +9,14 @@ tmux has-session -t $session_name 2>/dev/null
 # If session exists, offer option to attach or kill
 if [ $? = 0 ]; then
   while true; do
-    read -p "Session '$session_name' exists. Would you like to attach to it (y), create a new one (n), or cancel (c)?" choice
+    read -p "Session '$session_name' exists. Would you like to attach to it (y/a), create a new one (n/k), or cancel (c)?" choice
     case "$choice" in
-    y | Y)
+    y | Y | a | A)
       echo "Attaching to existing session..."
       tmux attach-session -t $session_name
       exit 0
       ;;
-    n | N)
+    n | N | k | K)
       echo "Killing existing session..."
       tmux kill-session -t $session_name
       ;;
