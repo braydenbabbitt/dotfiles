@@ -34,14 +34,17 @@ fi
 
 # Start session
 tmux new-session -d -s $session_name -n "fe-nvim"
-tmux send-keys "cd $frontend_dir && nvim ." C-m
+tmux send-keys "cd $frontend_dir" C-m
+tmux send-keys "nvim ." C-m
 
 # Create remaining windows
 tmux new-window -t $session_name:1 -n "fe-term"
-tmux send-keys "cd $frontend_dir && npm i && npm run dev" C-m
+tmux send-keys "cd $frontend_dir" C-m
+tmux send-keys "npm i && npm run dev" C-m
 
 tmux new-window -t $session_name:2 -n "be-nvim"
-tmux send-keys "cd $backend_dir && nvim ." C-m
+tmux send-keys "cd $backend_dir" C-m
+tmux send-keys "nvim ." C-m
 
 tmux new-window -t $session_name:3 -n "be-term"
 tmux send-keys "cd $backend_dir" C-m
