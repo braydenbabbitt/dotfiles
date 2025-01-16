@@ -37,10 +37,10 @@ tmux send-keys "cd $frontend_repo_dir" C-m
 tmux send-keys "nvim ." C-m
 
 # Create remaining windows
-tmux new-window -t $session_name:1 -n "term"
-tmux send-keys "cd $frontend_repo_dir" C-m
+# tmux new-window -t $session_name:1 -n "term"
+# tmux send-keys "cd $frontend_repo_dir" C-m
 
-tmux new-window -t $session_name:2 -n "server"
+tmux new-window -t $session_name:1 -n "server"
 tmux send-keys "cd $frontend_repo_dir" C-m
 tmux send-keys "(pnpm i || pnpm i) && pnpm exec nx run weave:start" C-m
 
