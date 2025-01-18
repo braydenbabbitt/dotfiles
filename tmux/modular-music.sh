@@ -42,7 +42,7 @@ tmux new-window -t $session_name:1 -n "fe-term"
 tmux send-keys "cd $frontend_dir" C-m
 tmux send-keys "npm i && npm run dev" C-m
 
-tmux new-window -t $session_name:1 -n "be-nvim"
+tmux new-window -t $session_name:2 -n "be-nvim"
 tmux send-keys "cd $backend_dir" C-m
 tmux send-keys "nvim ." C-m
 
