@@ -117,7 +117,7 @@
     "timezone": "America/Mountain/Denver",
     "format": "<span color='#BF00FF'>  </span>{:%I:%M %p} ",
     "tooltip": true,
-    "tooltip-format": "{:%A, L%Y/%m/%d}"
+    "tooltip-format": "{:%A, %Y/%m/%d}"
   },
   "tray": {
     "icon-size": 17,
