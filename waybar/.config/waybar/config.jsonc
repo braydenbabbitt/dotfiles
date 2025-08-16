@@ -39,7 +39,7 @@
   },
   "custom/lock": {
     "format": "<span color='#00FFFF'>  </span>",
-    "on-click": "hyprlock",
+    "on-click": "~/.config/hypr/scripts/lock-and-pause.sh",
     "tooltip": true,
     "tooltip-format": "Lock"
   },
