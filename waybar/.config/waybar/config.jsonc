@@ -24,13 +24,14 @@
   ],
   "hyprland/workspaces": {
     "disable-scroll": false,
-    "all-outputs": true,
-    "format": "{name}",
+    "all-outputs": false,
+    "format": "{icon}",
     "on-click": "activate",
     "persistent-workspaces": {
-      "*": [1, 2, 5, 6]
+      "HDMI-A-1": ["1", "2"],
+      "DP-3": ["6", "7"]
     },
-    "format-names": {
+    "format-icons": {
       "1": "L1",
       "2": "L2",
       "3": "L3",
