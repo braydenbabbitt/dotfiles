@@ -3,3 +3,7 @@
 	url = git@github.com:braydenbabbitt/my-nvim.git
 	branch = main
 
+[submodule "tools/tmux-sessionizer"]
+	path = tools/tmux-sessionizer
+  url = git@github.com:braydenbabbitt/tmux-sessionizer
+  branck = main
