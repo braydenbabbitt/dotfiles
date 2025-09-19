@@ -1,0 +1,3 @@
+theme = tokyonight_night
+font-feature = -calt
+keybind = shift+enter=text:\x1b\r
