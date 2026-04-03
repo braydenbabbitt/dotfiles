@@ -56,6 +56,46 @@ Example:
 stow -t ~ -D tmux
 ```
 
+## OpenCode Plugins
+
+The `opencode/` stow package includes OpenCode configuration and plugins. Plugins require a build step before stowing because only the compiled output should be symlinked -- not the full plugin source.
+
+Plugin source code lives in `_plugins/` as git submodules, outside the stow tree. A build script handles compiling and copying the built `.js` file into the stow package's plugins directory. OpenCode auto-loads `.js` files from `~/.config/opencode/plugins/` at startup.
+
+### Setup
+
+```sh
+# Initialize submodules (first time or after clone)
+git submodule update --init --recursive
+
+# Build plugins and copy dist files into the stow tree
+./build-plugins.sh
+
+# Stow the opencode config (including built plugin dist files)
+stow -t ~ opencode
+```
+
+### Updating a Plugin
+
+```sh
+# Pull latest changes for the plugin submodule
+git -C _plugins/opencode-meridian pull
+
+# Rebuild and copy dist files
+./build-plugins.sh
+
+# Re-stow if needed
+stow -t ~ -R opencode
+```
+
+### How It Works
+
+1. `_plugins/opencode-meridian/` -- git submodule with the full plugin source
+2. `./build-plugins.sh` -- runs `bun install` + `bun run build` in the submodule, then copies `dist/index.js` to `opencode/.config/opencode/plugins/opencode-meridian.js`
+3. `stow -t ~ opencode` -- symlinks `opencode-meridian.js` into `~/.config/opencode/plugins/`, where OpenCode auto-loads it
+
+The copied `.js` files are gitignored since they are build artifacts.
+
 ## Customization
 
 - Edit config files in this repo and re-run `stow` to update symlinks.

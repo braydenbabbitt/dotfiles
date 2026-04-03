@@ -7,3 +7,6 @@
 	path = tools/tmux-sessionizer
   url = git@github.com:braydenbabbitt/tmux-sessionizer
   branck = main
+[submodule "_plugins/opencode-meridian"]
+	path = _plugins/opencode-meridian
+	url = git@github.com:braydenbabbitt/opencode-meridian
