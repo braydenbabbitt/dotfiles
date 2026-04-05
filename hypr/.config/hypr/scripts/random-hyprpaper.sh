@@ -3,7 +3,16 @@
 sleep 2
 
 WALLPAPER_DIR="$HOME/pictures/wallpapers"
-CURRENT_WALL=$(hyprctl hyprpaper listloaded)
-WALLPAPER=$(find "$WALLPAPER_DIR" -type f ! -name "$(basename "$CURRENT_WALL")" | shuf -n 1)
+WALLPAPER=$(find "$WALLPAPER_DIR" -type f | shuf -n 1)
 
-hyprctl hyprpaper reload ,"$WALLPAPER"
+# hyprpaper 0.8+ is IPC-only via hyprctl
+# Ensure hyprpaper is running
+if ! pgrep -x hyprpaper > /dev/null; then
+    hyprpaper &
+    sleep 2
+fi
+
+# Set wallpaper on all monitors
+for monitor in $(hyprctl monitors -j | jq -r '.[].name'); do
+    hyprctl hyprpaper wallpaper "$monitor,$WALLPAPER"
+done
