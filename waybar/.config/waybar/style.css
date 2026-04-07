@@ -51,6 +51,7 @@
   border-width: 0px;
 }
 
+#custom-sleep,
 #custom-reboot,
 #bluetooth,
 #battery,
@@ -83,6 +84,7 @@
 #cpu:hover,
 #clock:hover,
 #custom-lock:hover,
+#custom-sleep:hover,
 #custom-reboot:hover,
 #custom-power:hover,
 /*#workspaces:hover,*/

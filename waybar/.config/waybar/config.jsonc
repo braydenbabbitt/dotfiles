@@ -7,6 +7,7 @@
     "hyprland/workspaces",
     "tray",
     "custom/lock",
+    "custom/sleep",
     "custom/reboot",
     "custom/power"
   ],
@@ -15,7 +16,7 @@
     "network",
     // "battery",
     // "bluetooth",
-    // "pulseaudio",
+    "pulseaudio",
     "backlight",
     "custom/temperature",
     "memory",
@@ -56,8 +57,14 @@
     "tooltip": true,
     "tooltip-format": "Lock"
   },
+  "custom/sleep": {
+    "format": "<span color='#BF00FF'> 󰤄 </span>",
+    "on-click": "~/.config/hypr/scripts/sleep.sh",
+    "tooltip": true,
+    "tooltip-format": "Sleep"
+  },
   "custom/reboot": {
-    "format": "<span color='#FFD700'>  </span>",
+    "format": "<span color='#FFD700'> 󰑙 </span>",
     "on-click": "systemctl reboot",
     "tooltip": true,
     "tooltip-format": "Reboot"
@@ -69,12 +76,12 @@
     "tooltip-format": "Shut Down"
   },
   "network": {
-    "format-wifi": "<span color='#00FFFF'> 󰤨 </span>{essid} ",
+    "format-wifi": "<span color='#00FFFF'> 󰤨 </span>{signalStrength}% ",
     "format-ethernet": "<span color='#7FFF00'> </span>Wired ",
     "tooltip-format": "<span color='#FF1493'> 󰅧 </span>{bandwidthUpBytes}  <span color='#00BFFF'> 󰅢 </span>{bandwidthDownBytes}",
     "format-linked": "<span color='#FFA500'> 󱘖 </span>{ifname} (No IP) ",
     "format-disconnected": "<span color='#FF4040'>  </span>Disconnected ",
-    "format-alt": "<span color='#00FFFF'> 󰤨 </span>{signalStrength}% ",
+    "format-alt": "<span color='#00FFFF'> 󰤨 </span>{essid} ",
     "interval": 1
   },
   "battery": {
