@@ -1,3 +1,4 @@
 theme = TokyoNight Night
 font-feature = -calt
 keybind = shift+enter=text:\x1b[13;2u
+font-size = 11

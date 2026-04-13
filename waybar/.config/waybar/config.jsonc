@@ -29,9 +29,9 @@
     "format": "{icon}",
     "on-click": "activate",
     "persistent-workspaces": {
-      "HDMI-A-1": ["1", "2"],
-      "DP-2": ["6", "7"],
-      "DP-3": ["11", "12"]
+      "HDMI-A-1": ["1", "2"],  // left
+      "DP-2": ["6", "7"],      // center
+      "DP-3": ["11", "12"]     // right
     },
     "format-icons": {
       "1": "L1",

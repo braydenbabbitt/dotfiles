@@ -8,17 +8,22 @@ ACTION="$2"
 
 FOCUSED_MONITOR=$(hyprctl monitors -j | jq -r '.[] | select(.focused==true) | .name')
 
+# Monitor name mapping — update these if monitor ports change
+LEFT="HDMI-A-1"
+CENTER="DP-2"
+RIGHT="DP-3"
+
 case "$FOCUSED_MONITOR" in
-  HDMI-A-1) OFFSET=0 ;;
-  DP-2)     OFFSET=5 ;;
-  DP-3)     OFFSET=10 ;;
-  *)        OFFSET=0 ;;
+"$LEFT") OFFSET=0 ;;
+"$CENTER") OFFSET=5 ;;
+"$RIGHT") OFFSET=10 ;;
+*) OFFSET=0 ;;
 esac
 
 WORKSPACE=$((NUM + OFFSET))
 
 if [ "$ACTION" = "move" ]; then
-  hyprctl dispatch movetoworkspace "$WORKSPACE"
+	hyprctl dispatch movetoworkspace "$WORKSPACE"
 else
-  hyprctl dispatch workspace "$WORKSPACE"
+	hyprctl dispatch workspace "$WORKSPACE"
 fi
