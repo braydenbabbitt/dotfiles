@@ -1,6 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-claude-commands@0.1.1"],
+  "plugin": [
+    "opencode-claude-commands@0.1.1",
+    "opencode-with-claude@1.5.0",
+    "/Users/braydenbabbitt/.local/share/fnm/node-versions/v24.13.0/installation/lib/node_modules/@rynfar/meridian/plugin/meridian.ts"
+  ],
   "provider": {
     "anthropic": {
       "options": {
