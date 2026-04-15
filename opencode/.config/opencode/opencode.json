@@ -1,9 +1,6 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": [
-    "opencode-claude-commands@0.1.1",
-    "/usr/lib/node_modules/@rynfar/meridian/plugin/meridian.ts"
-  ],
+  "plugin": ["opencode-claude-commands@0.1.1"],
   "provider": {
     "anthropic": {
       "options": {
