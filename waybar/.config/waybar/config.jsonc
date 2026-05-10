@@ -21,6 +21,7 @@
     "custom/temperature",
     "memory",
     "cpu",
+    "custom/meridian",
     "clock"
   ],
   "hyprland/workspaces": {
@@ -118,10 +119,19 @@
   },
   "custom/temperature": {
     "exec": "sensors | awk '/^Package id 0:/ {print int($4)}'",
-    "format": "<span color='#FFA500'> </span>{}°C ",
+    "format": "<span color='#FFA500'> </span>{}°C ",
     "interval": 5,
     "tooltip": true,
     "tooltip-format": "CPU: {}°C"
+  },
+  "custom/meridian": {
+    "exec": "~/.config/hypr/scripts/meridian-usage.sh",
+    "on-click": "~/.config/hypr/scripts/meridian-usage.sh cycle",
+    "return-type": "json",
+    "format": "{}",
+    "interval": 1,
+    "signal": 8,
+    "tooltip": true
   },
   "memory": {
     "format": "<span color='#8A2BE2'>  </span>{used:0.1f}G/{total:0.1f}G ",
