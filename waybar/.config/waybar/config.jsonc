@@ -129,7 +129,7 @@
     "on-click": "~/.config/hypr/scripts/meridian-usage.sh cycle",
     "return-type": "json",
     "format": "{}",
-    "interval": 1,
+    "interval": 30,
     "signal": 8,
     "tooltip": true
   },
