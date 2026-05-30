@@ -11,7 +11,7 @@
     "custom/reboot",
     "custom/power"
   ],
-  "modules-center": ["hyprland/window"],
+  "modules-center": ["image#spotify-art", "custom/spotify"],
   "modules-right": [
     "network",
     // "battery",
@@ -123,6 +123,30 @@
     "interval": 5,
     "tooltip": true,
     "tooltip-format": "CPU: {}°C"
+  },
+  "image#spotify-art": {
+    "path": "/home/brayden/.cache/waybar-spotify-art.jpg",
+    "size": 24,
+    "interval": 2,
+    "on-click": "playerctl --player=spotify play-pause",
+    "on-click-middle": "hyprctl dispatch exec '[workspace special:spotify] spotify' || spotify",
+    "on-click-right": "playerctl --player=spotify next",
+    "on-scroll-up": "playerctl --player=spotify next",
+    "on-scroll-down": "playerctl --player=spotify previous",
+    "tooltip": true
+  },
+  "custom/spotify": {
+    "exec": "~/.config/hypr/scripts/spotify-status.sh",
+    "return-type": "json",
+    "format": "{}",
+    "interval": 2,
+    "on-click": "playerctl --player=spotify play-pause",
+    "on-click-middle": "hyprctl dispatch exec '[workspace special:spotify] spotify' || spotify",
+    "on-click-right": "playerctl --player=spotify next",
+    "on-scroll-up": "playerctl --player=spotify next",
+    "on-scroll-down": "playerctl --player=spotify previous",
+    "tooltip": true,
+    "max-length": 60
   },
   "custom/meridian": {
     "exec": "~/.config/hypr/scripts/meridian-usage.sh",
