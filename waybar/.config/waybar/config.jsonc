@@ -7,7 +7,10 @@
     "hyprland/workspaces",
     "tray",
     "custom/lock",
-    "custom/sleep",
+    // "custom/sleep" removed: suspend hard-locks this machine (RX 7900 XT / Navi 31
+    // amdgpu SMU suspend bug — GPU fails to suspend/resume and the reset wedges the
+    // card: fans to 100%, no wake, requires a forced power-off). See custom/sleep
+    // definition below. Re-enable only once the amdgpu driver bug is fixed.
     "custom/reboot",
     "custom/power"
   ],
@@ -58,12 +61,18 @@
     "tooltip": true,
     "tooltip-format": "Lock"
   },
-  "custom/sleep": {
-    "format": "<span color='#BF00FF'> 󰤄 </span>",
-    "on-click": "~/.config/hypr/scripts/sleep.sh",
-    "tooltip": true,
-    "tooltip-format": "Sleep"
-  },
+  // Suspend disabled: this machine (RX 7900 XT / Navi 31) hits an amdgpu SMU
+  // suspend/resume bug — "suspend of IP block <smu> failed -22", GPU reset fails,
+  // card wedges with fans at 100% and the power button dead, needing a forced
+  // power-off. Intermittent (s2idle reduced but did not eliminate it). Not fixable
+  // from config/scripts — it's a kernel/driver bug. Removed from modules-left above.
+  // Re-enable this block + the module entry once the amdgpu driver bug is resolved.
+  // "custom/sleep": {
+  //   "format": "<span color='#BF00FF'> 󰤄 </span>",
+  //   "on-click": "~/.config/hypr/scripts/sleep.sh",
+  //   "tooltip": true,
+  //   "tooltip-format": "Sleep"
+  // },
   "custom/reboot": {
     "format": "<span color='#FFD700'> 󰑙 </span>",
     "on-click": "systemctl reboot",
