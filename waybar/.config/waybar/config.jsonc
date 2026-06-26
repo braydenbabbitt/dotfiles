@@ -1,7 +1,7 @@
 {
   "layer": "top",
   "position": "top",
-  "height": 32,
+  "height": 24,
   "spacing": 0,
   "modules-left": [
     "hyprland/workspaces",
@@ -14,7 +14,14 @@
     "custom/reboot",
     "custom/power"
   ],
-  "modules-center": ["image#spotify-art", "custom/spotify"],
+  "modules-center": [
+    "image#spotify-art",
+    "custom/spotify",
+    "custom/spotify-prev",
+    "custom/spotify-playpause",
+    "custom/spotify-next",
+    "custom/cava"
+  ],
   "modules-right": [
     "network",
     // "battery",
@@ -135,7 +142,7 @@
   },
   "image#spotify-art": {
     "path": "/home/brayden/.cache/waybar-spotify-art.jpg",
-    "size": 24,
+    "size": 18,
     "interval": 2,
     "on-click": "playerctl --player=spotify play-pause",
     "on-click-middle": "hyprctl dispatch exec '[workspace special:spotify] spotify' || spotify",
@@ -156,6 +163,34 @@
     "on-scroll-down": "playerctl --player=spotify previous",
     "tooltip": true,
     "max-length": 60
+  },
+  "custom/spotify-prev": {
+    "format": "",
+    "on-click": "playerctl --player=spotify previous",
+    "tooltip": true,
+    "tooltip-format": "Previous"
+  },
+  "custom/spotify-playpause": {
+    "exec": "~/.config/hypr/scripts/spotify-playpause.sh",
+    "return-type": "json",
+    "format": "{}",
+    "interval": 2,
+    "signal": 9,
+    "on-click": "~/.config/hypr/scripts/spotify-playpause.sh toggle",
+    "tooltip": true
+  },
+  "custom/spotify-next": {
+    "format": "",
+    "on-click": "playerctl --player=spotify next",
+    "tooltip": true,
+    "tooltip-format": "Next"
+  },
+  "custom/cava": {
+    // No "interval" and no "return-type": waybar keeps this script alive
+    // as a stream and updates the module on every newline (each cava frame).
+    "exec": "~/.config/hypr/scripts/cava-waybar.sh",
+    "format": "{}",
+    "tooltip": false
   },
   "custom/meridian": {
     "exec": "~/.config/hypr/scripts/meridian-usage.sh",
@@ -183,7 +218,7 @@
     "tooltip-format": "{:%A, %Y/%m/%d}"
   },
   "tray": {
-    "icon-size": 17,
+    "icon-size": 13,
     "spacing": 6
   },
   "backlight": {

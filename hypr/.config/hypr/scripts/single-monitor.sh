@@ -1,19 +1,26 @@
 #!/bin/bash
-
-# Disables the left (HDMI-A-1) and right (DP-3) monitors, leaving only
-# the center monitor (DP-2) active.
+#
+# Enter center-only mode (idempotent).
+#
+# Thin wrapper around single-monitor-toggle.sh C — collapses everything onto the
+# center monitor (DP-2), disables the side monitors, and relocates all windows,
+# exactly like the $mainMod+CTRL+C hotkey. Used as a Sunshine prep "do" command.
+#
+# single-monitor-toggle.sh is a *toggle*, so we only invoke it when we're not
+# already collapsed onto center; otherwise calling it would toggle back OFF.
 
 export XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export HYPRLAND_INSTANCE_SIGNATURE=$(ls "$XDG_RUNTIME_DIR/hypr/" | head -1)
-HYPRCTL="/usr/bin/hyprctl"
 
-# Monitor name mapping — update these if monitor ports change
-LEFT="HDMI-A-1"
-CENTER="DP-2"
-RIGHT="DP-3"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STATE_FILE="$XDG_RUNTIME_DIR/hypr-single-monitor.state"
 
-LEFT_MONITOR="$LEFT"
-RIGHT_MONITOR="$RIGHT"
+ACTIVE_LETTER=""
+[ -f "$STATE_FILE" ] && ACTIVE_LETTER="$(head -n1 "$STATE_FILE")"
 
-$HYPRCTL keyword monitor "$LEFT_MONITOR,disable"
-$HYPRCTL keyword monitor "$RIGHT_MONITOR,disable"
+# Already collapsed onto center → nothing to do.
+[ "$ACTIVE_LETTER" = "C" ] && exit 0
+
+# Not collapsed (or collapsed onto a different monitor) → the toggle restores any
+# other-monitor state first, then collapses onto center.
+"$SCRIPT_DIR/single-monitor-toggle.sh" C

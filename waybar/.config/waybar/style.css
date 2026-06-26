@@ -1,4 +1,4 @@
-@define-color background_color rgba(34, 0, 69, 0.9);
+@define-color background_color rgba(34, 0, 69, 0.75);
 @define-color active_background_color rgba(66, 0, 133, 1);
 @define-color hover_background_color rgba(66, 0, 133, 0.8);
 
@@ -7,12 +7,12 @@
     "CaskaydiaCove Nerd Font", "Font Awesome 6 Free",
     "Font Awesome 6 Free Solid";
   font-weight: bold;
-  font-size: 16px;
+  font-size: 14px;
   color: #dcdfe1;
 }
 
 #waybar {
-  background-color: rgba(0, 0, 0, 0);
+  background-color: @background_color;
   border: none;
   box-shadow: none;
 }
@@ -20,34 +20,22 @@
 #workspaces,
 #window,
 #tray {
-  background-color: @background_color;
-  padding: 4px 6px;
-  margin-top: 6px;
-  margin-left: 6px;
-  margin-right: 6px;
-  border-radius: 10px;
+  background-color: transparent;
+  padding: 2px 6px;
   border-width: 0px;
 }
 
 #clock,
 #custom-power {
-  background-color: @background_color;
-  margin-top: 6px;
-  margin-right: 6px;
-  /*margin-bottom: 4px;*/
-  padding: 4px 2px; /* 保持内部间距 */
-  border-radius: 0 10px 10px 0;
+  background-color: transparent;
+  padding: 2px 2px; /* 保持内部间距 */
   border-width: 0px;
 }
 
 #network,
 #custom-lock {
-  background-color: @background_color;
-  margin-top: 6px; /* 与屏幕顶部留出距离 */
-  margin-left: 6px;
-  /*margin-bottom: 4px;*/
-  padding: 4px 2px; /* 保持内部间距 */
-  border-radius: 10px 0 0 10px;
+  background-color: transparent;
+  padding: 2px 2px; /* 保持内部间距 */
   border-width: 0px;
 }
 
@@ -60,16 +48,18 @@
 #custom-temperature,
 #custom-meridian,
 #custom-spotify,
+#custom-spotify-prev,
+#custom-spotify-playpause,
+#custom-spotify-next,
+#custom-cava,
 #image-spotify-art,
 #image.spotify-art,
 #spotify-art,
 #image,
 #memory,
 #cpu {
-  background-color: @background_color;
-  margin-top: 6px; /* 与屏幕顶部留出距离 */
-  /*margin-bottom: 4px;*/
-  padding: 4px 2px; /* 保持内部间距 */
+  background-color: transparent;
+  padding: 2px 2px; /* 保持内部间距 */
   border-width: 0px;
 }
 
@@ -86,27 +76,47 @@
   min-height: 0;
 }
 
+/* Vertical separators between the left-section modules.
+   Drawn as a left-edge gradient (not border-left) so the line can be 80%
+   height, centered: transparent for the top/bottom 10%, visible in the middle. */
+#tray,
+#custom-lock,
+#custom-reboot,
+#custom-power {
+  padding-left: 9px;
+  margin-left: 4px;
+  background-color: transparent;
+  background-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    transparent 15%,
+    rgba(220, 223, 225, 0.3) 15%,
+    rgba(220, 223, 225, 0.3) 85%,
+    transparent 85%,
+    transparent 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 1px 100%;
+  background-position: left center;
+}
+
 #custom-spotify {
-  padding: 4px 10px 4px 0;
-  border-radius: 0 10px 10px 0;
-  color: #1DB954;
+  padding: 2px 10px 2px 0;
+  color: #1db954;
 }
 
 #custom-spotify.no-art {
-  padding: 4px 10px;
-  border-radius: 10px;
+  padding: 2px 10px;
 }
 
 #image-spotify-art,
 #image.spotify-art,
 #spotify-art,
 #image {
-  background-color: @background_color;
-  padding: 4px 0 4px 8px;
-  border-radius: 10px 0 0 10px;
-  margin-top: 6px;
-  min-height: 24px;
-  min-width: 24px;
+  background-color: transparent;
+  padding: 2px 0 2px 8px;
+  min-height: 18px;
+  min-width: 18px;
 }
 
 #image-spotify-art *,
@@ -118,6 +128,33 @@
 
 #custom-spotify.paused {
   color: #aaaaaa;
+}
+
+/* Spotify playback controls — default text color, green on hover. */
+#custom-spotify-prev,
+#custom-spotify-playpause,
+#custom-spotify-next {
+  color: #dcdfe1;
+  padding: 2px 6px;
+  margin: 0;
+  min-width: 0;
+}
+
+#custom-spotify-prev:hover,
+#custom-spotify-playpause:hover,
+#custom-spotify-next:hover {
+  color: #1db954;
+}
+
+/* Audio visualizer bars, closing the widget group on the right.
+   Smaller font + tight letter-spacing keeps the 18 bars compact and
+   narrow rather than each glyph rendering at full bar width. */
+#custom-cava {
+  color: #1db954;
+  padding: 2px 10px 2px 6px;
+  min-width: 0;
+  font-size: 11px;
+  letter-spacing: -1px;
 }
 
 #custom-temperature.critical,
