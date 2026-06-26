@@ -4,7 +4,7 @@
 # Part of the agent-workflows / plan-persistence protocol:
 #   ~/.config/agent-workflows/plan-persistence/PROTOCOL.md
 #
-# Agent-agnostic: prints active plan documents (with their current phase) and any
+# Agent-agnostic: prints active plan documents (with their in-progress phase) and any
 # outstanding TODO(plan:...) code markers, so any coding agent (or human) resuming
 # a session can pick up exactly where work stopped. A plan in phase 1 has no code
 # markers yet — it exists only as a .plans/<name>.md document, so both are scanned.
@@ -59,7 +59,7 @@ echo
 echo "DIRECTIVE (coding agent, every session — non-optional): this project follows the"
 echo "plan-persistence protocol at $protocol."
 echo "Before doing anything else, run its Recovery steps: read each plan document below,"
-echo "resume from its 'Current phase', and re-read the surrounding code before continuing."
+echo "resume from its in-progress phase, and re-read the surrounding code before continuing."
 
 if [ -n "$plan_docs" ]; then
   echo
@@ -67,12 +67,20 @@ if [ -n "$plan_docs" ]; then
   while IFS= read -r doc; do
     [ -z "$doc" ] && continue
     name="$(basename "$doc" .md)"
-    phase="$(grep -m1 -iE '^\*\*Current phase:\*\*' "$doc" 2>/dev/null \
-      | sed -E 's/^\*\*Current phase:\*\* *//I' || true)"
+    # The in-progress phase is the checklist line marked '[-]'. If none is marked
+    # in progress, the first incomplete '[ ]' line is the next phase to start.
+    phase="$(grep -m1 -E '^- \[-\] ' "$doc" 2>/dev/null \
+      | sed -E 's/^- \[-\] *//' || true)"
     if [ -n "$phase" ]; then
       echo "  - $name — phase: $phase  ($doc)"
     else
-      echo "  - $name — phase: (not recorded)  ($doc)"
+      next="$(grep -m1 -E '^- \[ \] ' "$doc" 2>/dev/null \
+        | sed -E 's/^- \[ \] *//' || true)"
+      if [ -n "$next" ]; then
+        echo "  - $name — next phase to start: $next  ($doc)"
+      else
+        echo "  - $name — phase: (no [-] or [ ] box found)  ($doc)"
+      fi
     fi
   done <<< "$plan_docs"
 fi

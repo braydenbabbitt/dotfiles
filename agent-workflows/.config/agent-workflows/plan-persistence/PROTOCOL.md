@@ -28,6 +28,21 @@ is recorded in the plan document (see below).
    containing **only** the TODO comment — nothing else. No code is written in
    this phase; you are only marking the work.
 
+   **Tests get one marker per test case.** When the work involves tests, do not
+   write a single lumped "add tests here" marker. Write a **separate**
+   `TODO(plan:<name>)` comment for **each individual test case**, and each comment
+   must describe (a) what that case exercises and (b) the expected behavior it
+   verifies. This makes the intended coverage explicit and reviewable before any
+   test code exists, and in Phase 3 each case is implemented and its marker
+   removed one at a time, exactly like any other site. For example:
+
+   ```
+   // TODO(plan:appointment-reminders): test — creating a reminder with a past
+   //   date is rejected; expect a 422 and no row written.
+   // TODO(plan:appointment-reminders): test — a reminder fires exactly once even
+   //   if the scheduler tick runs twice; expect a single send, idempotency key reused.
+   ```
+
 3. **Implement** — Resolve the `TODO(plan:<name>)` comments **one at a time**.
    For each site: make the change, then **remove that TODO comment in the same
    edit**. The set of remaining markers is the live to-do list; it shrinks to
@@ -41,8 +56,30 @@ is recorded in the plan document (see below).
 
 **At the end of each phase, stop and ask the user whether to proceed to the next
 phase.** Do not roll from Plan into Identify, or Identify into Implement, without
-explicit confirmation. When the user confirms, update the `Current phase` field
-in the plan document **before** starting the new phase's work.
+explicit confirmation. When the user confirms, advance the `[-]` box in the plan
+document's checklist (mark the finished phase `[x]`, the new one `[-]`) **before**
+starting the new phase's work.
+
+**Phase 1 → Phase 2 (special case).** The plan document is itself the artifact
+under review at this gate, so its approval can double as the gate:
+
+- If the user **manually approved** writing the plan document (they saw it and
+  confirmed the edit), treat Phase 1 as complete and proceed to Phase 2.
+- If the document was **auto-approved** — written without a manual approval
+  prompt (e.g. `acceptEdits`/`dontAsk` mode, or permissions that allow the write
+  silently) — the user has not actually reviewed it. **Stop and ask** for explicit
+  confirmation before starting Phase 2.
+
+**Phase 3 → Phase 4 (special case).** The Phase 3 edits are the artifact under
+review at this gate, so their approval can double as the gate:
+
+- If the user **manually approved every edit** made in Phase 3 (each was seen and
+  confirmed), treat the implementation as reviewed and proceed to Phase 4 cleanup
+  automatically — no separate confirmation needed.
+- If **any** Phase 3 edit was **auto-approved** — applied without a manual approval
+  prompt (e.g. `acceptEdits`/`dontAsk` mode, or permissions that allow the edit
+  silently) — the user has not actually reviewed that work. **Stop and ask** for
+  explicit confirmation before starting Phase 4.
 
 ## The plan document
 
@@ -57,10 +94,9 @@ phase at a glance:
 # <name>
 
 **Goal:** one sentence stating the end state.
-**Current phase:** 2 — Identify code changes
 
 - [x] 1. Plan
-- [x] 2. Identify code changes   <-- in progress
+- [-] 2. Identify code changes
 - [ ] 3. Implement
 - [ ] 4. Cleanup
 
@@ -70,9 +106,11 @@ phase at a glance:
 open questions. No code snippets. No per-site edit checklist.>
 ```
 
-Keep `Current phase` accurate at all times — it is the single source of truth for
-where the task stands. The phase checklist above it is a human-readable mirror of
-the same fact.
+Checklist box states: `[x]` complete, `[-]` in progress, `[ ]` not started. The
+`[-]` box is the single source of truth for where the task stands — at most one
+box is `[-]` at a time. Keep it accurate at all times. If **no** box is `[-]`
+(e.g. a phase gate was just passed but the next phase hasn't started), the
+**first** incomplete `[ ]` box is the next phase to start.
 
 ## The code marker (phases 2–3)
 
@@ -101,11 +139,13 @@ active plans plus a directive) into context, so recovery is not something you op
 into — it runs every session by construction. Act on that output before doing
 anything else:
 
-1. List active plans: `ls .plans/` — each `<name>.md` reports its `Current phase`.
-   (You can also run `plan-status` or `grep -rn "TODO(plan:"` to find the code
-   markers directly, but note a plan still in phase 1 has **no** markers yet —
-   the plan document is the only trace, so always check `.plans/` too.)
-2. Read the plan document and resume according to its `Current phase`:
+1. List active plans: `ls .plans/` — each `<name>.md`'s `[-]` checklist box
+   reports the current phase. (You can also run `plan-status` or
+   `grep -rn "TODO(plan:"` to find the code markers directly, but note a plan
+   still in phase 1 has **no** markers yet — the plan document is the only trace,
+   so always check `.plans/` too.)
+2. Read the plan document and resume according to its `[-]` phase (or, if no box
+   is `[-]`, the first `[ ]` box — the next phase to start):
    - Phase 1: continue refining the plan document.
    - Phase 2: continue dropping `TODO(plan:<name>)` markers at remaining sites.
    - Phase 3: resume from any remaining `TODO(plan:<name>)` marker.
