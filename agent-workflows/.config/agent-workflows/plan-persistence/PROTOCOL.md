@@ -2,74 +2,127 @@
 
 This protocol makes any multi-step coding task resumable after an interruption —
 a crashed process, a dropped connection, a closed terminal, a new session, or a
-context reset. It is **agent-agnostic**: it relies only on plain comments in the
-code and one shell script, so any coding agent (or a human) can pick up the work.
+context reset. It is **agent-agnostic**: it relies only on a plain Markdown plan
+document and greppable code comments, so any coding agent (or a human) can pick
+up the work.
 
-The core idea: **the source tree is the source of truth for in-progress work.**
-Every active plan and its step-by-step state live as greppable comments in the
-files being changed, so nothing important is held only in volatile chat context.
+The core idea: **the work lives on disk, not in chat.** A task progresses through
+four explicit phases. A plan document captures the thinking; code comments mark
+the concrete change sites. Both are plain files in the repo, so nothing important
+is held only in volatile chat context.
 
-## The marker
+## The four phases
 
-Tag every plan with a stable, kebab-case name and write it as a checklist using
-the `TODO(plan:<name>)` marker:
+Every non-trivial task moves through these phases **in order**. The current phase
+is recorded in the plan document (see below).
+
+1. **Plan** — Produce a plan document (`.plans/<name>.md`) capturing all context
+   and decision-making behind the changes: the goal, the reasoning, the
+   trade-offs considered, and the approach chosen. The plan document contains
+   **no code snippets and no checklist of edits** — it is prose that explains
+   *what* and *why*, not *where* or *how* line-by-line.
+
+2. **Identify code changes** — Walk the codebase and drop a `TODO(plan:<name>)`
+   comment at **every site** where a change is needed. Each comment states what
+   that site needs. When the plan calls for a brand-new file, create the file
+   containing **only** the TODO comment — nothing else. No code is written in
+   this phase; you are only marking the work.
+
+3. **Implement** — Resolve the `TODO(plan:<name>)` comments **one at a time**.
+   For each site: make the change, then **remove that TODO comment in the same
+   edit**. The set of remaining markers is the live to-do list; it shrinks to
+   zero as the work completes.
+
+4. **Cleanup** — Once no `TODO(plan:<name>)` markers remain and the work is
+   verified (tests/build pass), delete the plan document. Confirm the repo is
+   clean of both the markers and the plan file.
+
+## Phase gates (user confirmation)
+
+**At the end of each phase, stop and ask the user whether to proceed to the next
+phase.** Do not roll from Plan into Identify, or Identify into Implement, without
+explicit confirmation. When the user confirms, update the `Current phase` field
+in the plan document **before** starting the new phase's work.
+
+## The plan document
+
+Location: `.plans/<name>.md`, where `<name>` is a short, stable, kebab-case name
+for the task (mirroring the branch name is a good default). This same `<name>` is
+used in the code markers, linking the two.
+
+The document MUST begin with a small status block so any agent can recover the
+phase at a glance:
+
+```markdown
+# <name>
+
+**Goal:** one sentence stating the end state.
+**Current phase:** 2 — Identify code changes
+
+- [x] 1. Plan
+- [x] 2. Identify code changes   <-- in progress
+- [ ] 3. Implement
+- [ ] 4. Cleanup
+
+## Context & decisions
+
+<prose: the problem, the approach chosen, alternatives weighed, constraints,
+open questions. No code snippets. No per-site edit checklist.>
+```
+
+Keep `Current phase` accurate at all times — it is the single source of truth for
+where the task stands. The phase checklist above it is a human-readable mirror of
+the same fact.
+
+## The code marker (phases 2–3)
+
+Tag every change site with the `TODO(plan:<name>)` marker, using the comment
+syntax of the file's language (`//`, `#`, `<!-- -->`, etc.):
 
 ```
-// TODO(plan:appointment-reminders): goal — wire the reminders UI to the scheduling API
-// TODO(plan:appointment-reminders): [x] add /reminders route
-// TODO(plan:appointment-reminders): [x] build ReminderForm component
-// TODO(plan:appointment-reminders): [ ] wire create/update mutation   <-- next
-// TODO(plan:appointment-reminders): [ ] add e2e coverage
+// TODO(plan:appointment-reminders): wire create/update mutation to the scheduling API
 ```
 
-Use the comment syntax of the file's language (`//`, `#`, `<!-- -->`, etc.).
-`TODO(plan:` is the literal string the tooling greps for — keep it exact. Tooling
-(the `plan-status` script today, an editor plugin later) parses each line as:
+`TODO(plan:` is the literal string the tooling greps for — keep it exact. For a
+new file, the file's entire initial contents are a single such comment:
 
 ```
-TODO(plan:<name>): [<space|x>] <text>   [<-- pointer]
+// TODO(plan:appointment-reminders): new ReminderForm component — see .plans/appointment-reminders.md
 ```
 
-so keep that shape: one step per line, `[ ]` or `[x]`, optional trailing `<-- …`.
+These markers are transient work-in-flight state, distinct from ordinary
+`TODO:`/`FIXME:` backlog notes. They must not survive into a merged change.
 
-## When to create a plan block
+## Recovery (start of every session — mandatory)
 
-Create one at the **start** of any task that spans more than a single edit or
-that you couldn't redo from memory in one pass. Skip it for trivial one-line
-changes.
+This protocol is **followed at the start of every session, without exception.** A
+`SessionStart` hook runs `plan-status` automatically and injects its output (the
+active plans plus a directive) into context, so recovery is not something you opt
+into — it runs every session by construction. Act on that output before doing
+anything else:
 
-- **Name**: short, kebab-case, stable for the life of the task (reuse it across
-  files and sessions). If a branch exists, mirroring the branch name is a good default.
-- **Location**: put the master checklist at the top of the *primary* file you're
-  changing. For a multi-file plan, keep ONE master checklist in an anchor file and,
-  if helpful, leave a one-line `// TODO(plan:<name>): see <anchor-file> for plan`
-  breadcrumb in the other files. Don't duplicate the full checklist everywhere.
-- **First line is the goal**: a single sentence stating the end state, so a fresh
-  agent understands intent without the original prompt.
-
-## Update discipline
-
-- Flip `[ ]` → `[x]` in the **same edit** that completes the step. The checklist
-  must never be ahead of or behind the actual code.
-- Mark the current step with a trailing `<-- next` (or `<-- in progress`) pointer
-  so recovery starts in the right place instantly.
-- If the plan changes, edit the checklist — add/reorder/remove steps. The block is
-  living scaffolding, not a historical record.
-
-## Recovery (start of every session)
-
-1. Find all active plans: run `plan-status` (installed at `~/.local/bin/plan-status`)
-   or `grep -rn "TODO(plan:"` from the repo root.
-2. For each plan, resume from the first `[ ]` step (the `<-- next` pointer).
-3. Re-read the surrounding code before continuing — the checklist says *what*'s
-   left, the code says *where things actually stand*. Trust the code if they disagree.
+1. List active plans: `ls .plans/` — each `<name>.md` reports its `Current phase`.
+   (You can also run `plan-status` or `grep -rn "TODO(plan:"` to find the code
+   markers directly, but note a plan still in phase 1 has **no** markers yet —
+   the plan document is the only trace, so always check `.plans/` too.)
+2. Read the plan document and resume according to its `Current phase`:
+   - Phase 1: continue refining the plan document.
+   - Phase 2: continue dropping `TODO(plan:<name>)` markers at remaining sites.
+   - Phase 3: resume from any remaining `TODO(plan:<name>)` marker.
+   - Phase 4: verify, then delete the plan document.
+3. Re-read the surrounding code before continuing — the document says *what* and
+   *why*, the markers say *where*. Trust the code if they disagree.
 
 ## Completion & hygiene
 
-- Delete the **entire** plan block only when the plan is fully done **and verified**
-  (tests/build pass). An unchecked box left behind means the work isn't finished.
-- These markers are scaffolding — they should not survive into a merged change.
-  Before committing/opening a PR, confirm no `TODO(plan:...)` markers remain
-  (`plan-status` reports them). Treat a leftover marker as an unfinished task, not noise.
-- This is distinct from ordinary `TODO:`/`FIXME:` comments — those are permanent
-  backlog notes; `TODO(plan:...)` is transient, work-in-flight state.
+- The task is done only when **both** the plan document is deleted **and** no
+  `TODO(plan:<name>)` markers remain, with tests/build passing.
+- Before committing or opening a PR, confirm nothing is left behind:
+  `grep -rn "TODO(plan:"` returns nothing and `.plans/<name>.md` is gone. Treat a
+  leftover marker or plan file as an unfinished task, not noise.
+
+## When to use this protocol
+
+Use it at the **start** of any task that spans more than a single edit or that you
+couldn't redo from memory in one pass. Skip the ceremony for trivial one-line
+changes.

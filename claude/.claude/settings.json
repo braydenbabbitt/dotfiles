@@ -1,13 +1,4 @@
 {
-  "enabledPlugins": {
-    "lua-lsp@claude-plugins-official": true,
-    "gopls-lsp@claude-plugins-official": true,
-    "typescript-lsp@claude-plugins-official": true,
-    "playwright@claude-plugins-official": false
-  },
-  "effortLevel": "high",
-  "skipAutoPermissionPrompt": true,
-  "skipWorkflowUsageWarning": true,
   "hooks": {
     "SessionStart": [
       {
@@ -19,5 +10,15 @@
         ]
       }
     ]
-  }
+  },
+  "enabledPlugins": {
+    "lua-lsp@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "playwright@claude-plugins-official": false
+  },
+  "effortLevel": "high",
+  "skipWorkflowUsageWarning": true,
+  "skipAutoPermissionPrompt": true,
+  "tui": "fullscreen"
 }

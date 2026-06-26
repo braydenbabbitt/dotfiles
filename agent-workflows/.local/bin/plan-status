@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
-# plan-status — list outstanding TODO(plan:...) markers for crash-recoverable work.
+# plan-status — list active plans for crash-recoverable work.
 #
 # Part of the agent-workflows / plan-persistence protocol:
 #   ~/.config/agent-workflows/plan-persistence/PROTOCOL.md
 #
-# Agent-agnostic: prints active plans and their checklist state so any coding
-# agent (or human) resuming a session can pick up exactly where work stopped.
+# Agent-agnostic: prints active plan documents (with their current phase) and any
+# outstanding TODO(plan:...) code markers, so any coding agent (or human) resuming
+# a session can pick up exactly where work stopped. A plan in phase 1 has no code
+# markers yet — it exists only as a .plans/<name>.md document, so both are scanned.
 # Always exits 0 so it is safe to wire into editor/agent session-start hooks.
 #
 # Usage:
@@ -14,7 +16,15 @@
 set -uo pipefail
 
 root="${1:-$(git rev-parse --show-toplevel 2>/dev/null || pwd)}"
+plans_dir="$root/.plans"
 
+# --- Plan documents (the source of truth for phase) -------------------------
+plan_docs=""
+if [ -d "$plans_dir" ]; then
+  plan_docs="$(find "$plans_dir" -maxdepth 1 -type f -name '*.md' 2>/dev/null | sort || true)"
+fi
+
+# --- Code markers (phases 2-3) ----------------------------------------------
 if command -v rg >/dev/null 2>&1; then
   # ripgrep respects .gitignore, so build artifacts/deps are skipped automatically.
   matches="$(rg --no-heading --line-number --color never 'TODO\(plan:' "$root" 2>/dev/null || true)"
@@ -29,19 +39,47 @@ else
     'TODO(plan:' "$root" 2>/dev/null || true)"
 fi
 
-if [ -z "$matches" ]; then
-  echo "plan-status: no in-progress plans (no TODO(plan:...) markers found)."
+# Path to the protocol doc the coding agent must follow. Resolved for the directive
+# only — printed even when the file is elsewhere, as a pointer.
+protocol="$HOME/.config/agent-workflows/plan-persistence/PROTOCOL.md"
+
+if [ -z "$plan_docs" ] && [ -z "$matches" ]; then
+  echo "plan-status: no in-progress plans (no .plans/*.md documents or TODO(plan:...) markers found)."
+  echo
+  echo "DIRECTIVE (coding agent, every session — non-optional): this project follows the"
+  echo "plan-persistence protocol at $protocol."
+  echo "There is nothing to resume right now. When you begin any task that spans more than a"
+  echo "single edit, you MUST start at Phase 1 (create .plans/<name>.md) and advance through"
+  echo "the phases, pausing for user confirmation at each phase gate."
   exit 0
 fi
 
-echo "plan-status: in-progress plans found. Resume each from its first '[ ]' step (look for '<-- next')."
-echo "Active plans:"
-# Pull distinct plan names out of the marker for a quick summary header.
-echo "$matches" \
-  | grep -oE 'TODO\(plan:[^)]+\)' \
-  | sed -E 's/TODO\(plan:(.*)\)/  - \1/' \
-  | sort -u
+echo "plan-status: in-progress work found."
 echo
-echo "Markers:"
-echo "$matches"
+echo "DIRECTIVE (coding agent, every session — non-optional): this project follows the"
+echo "plan-persistence protocol at $protocol."
+echo "Before doing anything else, run its Recovery steps: read each plan document below,"
+echo "resume from its 'Current phase', and re-read the surrounding code before continuing."
+
+if [ -n "$plan_docs" ]; then
+  echo
+  echo "Active plans:"
+  while IFS= read -r doc; do
+    [ -z "$doc" ] && continue
+    name="$(basename "$doc" .md)"
+    phase="$(grep -m1 -iE '^\*\*Current phase:\*\*' "$doc" 2>/dev/null \
+      | sed -E 's/^\*\*Current phase:\*\* *//I' || true)"
+    if [ -n "$phase" ]; then
+      echo "  - $name — phase: $phase  ($doc)"
+    else
+      echo "  - $name — phase: (not recorded)  ($doc)"
+    fi
+  done <<< "$plan_docs"
+fi
+
+if [ -n "$matches" ]; then
+  echo
+  echo "Outstanding TODO(plan:...) code markers (phases 2-3):"
+  echo "$matches"
+fi
 exit 0
