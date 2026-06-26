@@ -1,3 +1,3 @@
 # Global instructions
 
-@~/.config/agent-workflows/plan-persistence/PROTOCOL.md
+@~/.config/agent-workflows/tether/PROTOCOL.md

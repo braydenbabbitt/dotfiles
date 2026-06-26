@@ -1,6 +1,6 @@
-# Plan Persistence Protocol (crash-recoverable work)
+# Tether (crash-recoverable work)
 
-This protocol makes any multi-step coding task resumable after an interruption —
+Tether makes any multi-step coding task resumable after an interruption —
 a crashed process, a dropped connection, a closed terminal, a new session, or a
 context reset. It is **agent-agnostic**: it relies only on a plain Markdown plan
 document and greppable code comments, so any coding agent (or a human) can pick
@@ -133,14 +133,14 @@ These markers are transient work-in-flight state, distinct from ordinary
 
 ## Recovery (start of every session — mandatory)
 
-This protocol is **followed at the start of every session, without exception.** A
-`SessionStart` hook runs `plan-status` automatically and injects its output (the
+Tether is **followed at the start of every session, without exception.** A
+`SessionStart` hook runs `tether-status` automatically and injects its output (the
 active plans plus a directive) into context, so recovery is not something you opt
 into — it runs every session by construction. Act on that output before doing
 anything else:
 
 1. List active plans: `ls .plans/` — each `<name>.md`'s `[-]` checklist box
-   reports the current phase. (You can also run `plan-status` or
+   reports the current phase. (You can also run `tether-status` or
    `grep -rn "TODO(plan:"` to find the code markers directly, but note a plan
    still in phase 1 has **no** markers yet — the plan document is the only trace,
    so always check `.plans/` too.)

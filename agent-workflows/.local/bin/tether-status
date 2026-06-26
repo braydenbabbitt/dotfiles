@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# plan-status — list active plans for crash-recoverable work.
+# tether-status — list active plans for crash-recoverable work.
 #
-# Part of the agent-workflows / plan-persistence protocol:
-#   ~/.config/agent-workflows/plan-persistence/PROTOCOL.md
+# Part of the agent-workflows / tether protocol:
+#   ~/.config/agent-workflows/tether/PROTOCOL.md
 #
 # Agent-agnostic: prints active plan documents (with their in-progress phase) and any
 # outstanding TODO(plan:...) code markers, so any coding agent (or human) resuming
@@ -11,7 +11,7 @@
 # Always exits 0 so it is safe to wire into editor/agent session-start hooks.
 #
 # Usage:
-#   plan-status [path]   # path defaults to the current git repo root, else cwd
+#   tether-status [path]   # path defaults to the current git repo root, else cwd
 
 set -uo pipefail
 
@@ -41,23 +41,23 @@ fi
 
 # Path to the protocol doc the coding agent must follow. Resolved for the directive
 # only — printed even when the file is elsewhere, as a pointer.
-protocol="$HOME/.config/agent-workflows/plan-persistence/PROTOCOL.md"
+protocol="$HOME/.config/agent-workflows/tether/PROTOCOL.md"
 
 if [ -z "$plan_docs" ] && [ -z "$matches" ]; then
-  echo "plan-status: no in-progress plans (no .plans/*.md documents or TODO(plan:...) markers found)."
+  echo "tether-status: no in-progress plans (no .plans/*.md documents or TODO(plan:...) markers found)."
   echo
   echo "DIRECTIVE (coding agent, every session — non-optional): this project follows the"
-  echo "plan-persistence protocol at $protocol."
+  echo "tether protocol at $protocol."
   echo "There is nothing to resume right now. When you begin any task that spans more than a"
   echo "single edit, you MUST start at Phase 1 (create .plans/<name>.md) and advance through"
   echo "the phases, pausing for user confirmation at each phase gate."
   exit 0
 fi
 
-echo "plan-status: in-progress work found."
+echo "tether-status: in-progress work found."
 echo
 echo "DIRECTIVE (coding agent, every session — non-optional): this project follows the"
-echo "plan-persistence protocol at $protocol."
+echo "tether protocol at $protocol."
 echo "Before doing anything else, run its Recovery steps: read each plan document below,"
 echo "resume from its in-progress phase, and re-read the surrounding code before continuing."
 
