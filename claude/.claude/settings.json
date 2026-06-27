@@ -17,6 +17,7 @@
     "typescript-lsp@claude-plugins-official": true,
     "playwright@claude-plugins-official": false
   },
+  "alwaysThinkingEnabled": false,
   "effortLevel": "high",
   "skipWorkflowUsageWarning": true,
   "skipAutoPermissionPrompt": true,
