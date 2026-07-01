@@ -11,6 +11,12 @@ four explicit phases. A plan document captures the thinking; code comments mark
 the concrete change sites. Both are plain files in the repo, so nothing important
 is held only in volatile chat context.
 
+Every task gets a distinct `<name>` that namespaces both its plan document and its
+code markers. That namespacing is also what makes tether **safe under parallel
+sessions**: multiple agents can work in the same checkout at once, each on its own
+`<name>`, without adopting or clobbering each other's in-progress work. See
+"Recovery" for the rule that keeps a session from grabbing another session's plan.
+
 ## The four phases
 
 Every non-trivial task moves through these phases **in order**. The current phase
@@ -137,32 +143,88 @@ Tether is **followed at the start of every session, without exception.** A
 `SessionStart` hook runs `tether-status` automatically and injects its output (the
 active plans plus a directive) into context, so recovery is not something you opt
 into — it runs every session by construction. Act on that output before doing
-anything else:
+anything else.
 
-1. List active plans: `ls .plans/` — each `<name>.md`'s `[-]` checklist box
-   reports the current phase. (You can also run `tether-status` or
-   `grep -rn "TODO(plan:"` to find the code markers directly, but note a plan
-   still in phase 1 has **no** markers yet — the plan document is the only trace,
-   so always check `.plans/` too.)
-2. Read the plan document and resume according to its `[-]` phase (or, if no box
+**Parallel sessions share this repo.** Multiple agent sessions can run against the
+same checkout at once (worktrees are optional, not required), so the `.plans/`
+directory and the `TODO(plan:...)` markers you see may belong to **other sessions
+still actively working on them**. A plan being in-progress does **not** mean it is
+*yours* to resume. Never adopt, edit, implement, or clean up an in-progress plan
+just because it exists — doing so collides with the session that owns it.
+
+**The disambiguator is relevance to the user's actual request, not session
+identity.** Agents have no stable session id to key on, so ownership is decided by
+what the user has asked you to do this session:
+
+1. **Discover** in-progress work: read the `tether-status` output (or run
+   `ls .plans/` and `grep -rn "TODO(plan:"` yourself). Each `<name>.md`'s `[-]`
+   checklist box reports its phase; a plan still in phase 1 has **no** markers yet,
+   so always check `.plans/` too, not just the markers.
+
+2. **Match** each in-progress plan against the user's request for this session.
+   Resume a plan **only if** one of these holds:
+   - the user **explicitly** refers to it (by name, or "keep going / resume / finish
+     what you were doing"), **or**
+   - the job the user is asking for **is the same work** that plan describes — its
+     goal or subject matter clearly matches the request.
+
+   If **no** in-progress plan matches, **leave every existing plan and its markers
+   untouched** and treat the request as new work — start a fresh plan at Phase 1
+   under a new `<name>` (see "When to use this protocol"). Do not resume, advance,
+   or clean up someone else's plan as a side effect. When in doubt about whether a
+   plan is yours to touch, **ask the user** rather than adopting it.
+
+3. **Resume** the matched plan (if any) according to its `[-]` phase (or, if no box
    is `[-]`, the first `[ ]` box — the next phase to start):
    - Phase 1: continue refining the plan document.
    - Phase 2: continue dropping `TODO(plan:<name>)` markers at remaining sites.
    - Phase 3: resume from any remaining `TODO(plan:<name>)` marker.
    - Phase 4: verify, then delete the plan document.
-3. Re-read the surrounding code before continuing — the document says *what* and
+
+   Re-read the surrounding code before continuing — the document says *what* and
    *why*, the markers say *where*. Trust the code if they disagree.
+
+Because every plan and every marker is namespaced by a distinct `<name>`, parallel
+sessions working on **different** `<name>`s never step on each other: grep, cleanup,
+and completion checks below are all scoped to a single `<name>`.
+
+**Keep recovery quiet.** The discover/match reasoning above is bookkeeping, not
+something the user needs narrated. Do it privately — in your reasoning, not the
+visible reply — and let the *outcome* decide what, if anything, you say:
+
+- **No match, or nothing in progress** (the common case): say **nothing** about
+  tether at all. Do not report that you ran `tether-status`, that other plans
+  exist, or that you decided to start fresh. Just proceed with the work (opening a
+  new plan silently if the task warrants one).
+- **Resuming a matched plan:** one short line naming the plan and phase you're
+  resuming, then continue — no recap of the elimination process.
+- **A phase gate, or a genuine ambiguity you must ask about:** surface only that.
+
+In short: tether should be visible to the user only when it changes what happens
+next, never as a running commentary on session startup.
 
 ## Completion & hygiene
 
 - The task is done only when **both** the plan document is deleted **and** no
   `TODO(plan:<name>)` markers remain, with tests/build passing.
-- Before committing or opening a PR, confirm nothing is left behind:
-  `grep -rn "TODO(plan:"` returns nothing and `.plans/<name>.md` is gone. Treat a
-  leftover marker or plan file as an unfinished task, not noise.
+- Scope completion checks to **your** `<name>`, never to all plans — a parallel
+  session's markers or plan file are not yours to clean up or block on. Before
+  committing or opening a PR, confirm your own work is fully landed:
+  `grep -rn "TODO(plan:<name>)"` (your exact `<name>`) returns nothing and
+  `.plans/<name>.md` is gone. Treat a leftover marker or plan file **for your
+  `<name>`** as an unfinished task, not noise.
+- Other `<name>`s left behind by concurrent sessions are expected and fine; leave
+  them in place. Do **not** run a bare `grep -rn "TODO(plan:"` and treat another
+  session's markers as blockers for your change.
 
 ## When to use this protocol
 
 Use it at the **start** of any task that spans more than a single edit or that you
 couldn't redo from memory in one pass. Skip the ceremony for trivial one-line
 changes.
+
+**Single-file changes — ask first.** If the whole change is contained to a single
+file, the protocol is likely overkill. Before setting up a plan document, **ask
+the user whether they'd like to skip the protocol altogether** for this change. If
+they say yes, proceed directly without any tether scaffolding; if they say no,
+follow the phases as normal.

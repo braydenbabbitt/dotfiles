@@ -10,6 +10,12 @@
 # markers yet — it exists only as a .plans/<name>.md document, so both are scanned.
 # Always exits 0 so it is safe to wire into editor/agent session-start hooks.
 #
+# Parallel-session safe: several sessions may share one checkout, so the plans and
+# markers listed here can belong to OTHER active sessions. This tool only REPORTS
+# them — it does not imply the current session should resume any of them. The
+# emitted directive tells the agent to resume a plan only when the user's request
+# matches it, and otherwise to start fresh under a new <name> (see PROTOCOL.md).
+#
 # Usage:
 #   tether-status [path]   # path defaults to the current git repo root, else cwd
 
@@ -54,12 +60,16 @@ if [ -z "$plan_docs" ] && [ -z "$matches" ]; then
   exit 0
 fi
 
-echo "tether-status: in-progress work found."
+echo "tether-status: in-progress work found (possibly owned by other parallel sessions)."
 echo
 echo "DIRECTIVE (coding agent, every session — non-optional): this project follows the"
 echo "tether protocol at $protocol."
-echo "Before doing anything else, run its Recovery steps: read each plan document below,"
-echo "resume from its in-progress phase, and re-read the surrounding code before continuing."
+echo "The plans and markers below may belong to OTHER sessions still working on them."
+echo "Do NOT resume a plan just because it is in progress. Run the protocol's Recovery"
+echo "steps: resume a plan ONLY if the user's request for this session matches it (named"
+echo "explicitly, or the same work it describes). If none matches, leave every plan and"
+echo "its markers untouched and start new work at Phase 1 under a new <name>. When unsure"
+echo "whether a plan is yours to touch, ask the user rather than adopting it."
 
 if [ -n "$plan_docs" ]; then
   echo
