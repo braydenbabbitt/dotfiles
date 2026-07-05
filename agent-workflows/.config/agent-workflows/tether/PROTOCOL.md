@@ -34,13 +34,23 @@ is recorded in the plan document (see below).
    containing **only** the TODO comment — nothing else. No code is written in
    this phase; you are only marking the work.
 
-   **Tests get one marker per test case.** When the work involves tests, do not
+   **Tests get one marker per test case, written first.** When the work involves
+   tests, drop the **test markers before the source-file markers** — the intended
+   behavior is defined before the code that satisfies it is even marked. Do not
    write a single lumped "add tests here" marker. Write a **separate**
    `TODO(plan:<name>)` comment for **each individual test case**, and each comment
    must describe (a) what that case exercises and (b) the expected behavior it
    verifies. This makes the intended coverage explicit and reviewable before any
    test code exists, and in Phase 3 each case is implemented and its marker
-   removed one at a time, exactly like any other site. For example:
+   removed one at a time, exactly like any other site.
+
+   **The expectations are fixed once defined.** Each test case's expected behavior
+   is a design decision made here in Phase 2. After a case is defined, its
+   expectation may be changed **only** as a deliberate, acknowledged design change
+   — **never** to make a failing test pass. A test failing in Phase 3 means the
+   source is wrong (or the expectation was, and you are consciously redesigning it
+   and updating the plan to say so), not that the expectation should be quietly
+   relaxed to match whatever the code happens to do. For example:
 
    ```
    // TODO(plan:appointment-reminders): test — creating a reminder with a past
@@ -53,6 +63,11 @@ is recorded in the plan document (see below).
    For each site: make the change, then **remove that TODO comment in the same
    edit**. The set of remaining markers is the live to-do list; it shrinks to
    zero as the work completes.
+
+   When a test fails here, fix the source, not the expectation. A test case's
+   expected behavior was fixed in Phase 2 and may be altered only as an
+   intentional design change (recorded in the plan document) — never edited to
+   satisfy the code under test.
 
 4. **Cleanup** — Once no `TODO(plan:<name>)` markers remain and the work is
    verified (tests/build pass), delete the plan document. Confirm the repo is
@@ -67,25 +82,15 @@ document's checklist (mark the finished phase `[x]`, the new one `[-]`) **before
 starting the new phase's work.
 
 **Phase 1 → Phase 2 (special case).** The plan document is itself the artifact
-under review at this gate, so its approval can double as the gate:
-
-- If the user **manually approved** writing the plan document (they saw it and
-  confirmed the edit), treat Phase 1 as complete and proceed to Phase 2.
-- If the document was **auto-approved** — written without a manual approval
-  prompt (e.g. `acceptEdits`/`dontAsk` mode, or permissions that allow the write
-  silently) — the user has not actually reviewed it. **Stop and ask** for explicit
-  confirmation before starting Phase 2.
+under review at this gate, so its approval doubles as the gate: once the plan
+document is written, treat Phase 1 as complete and proceed to Phase 2. The user
+will interrupt if the plan needs changes.
 
 **Phase 3 → Phase 4 (special case).** The Phase 3 edits are the artifact under
-review at this gate, so their approval can double as the gate:
-
-- If the user **manually approved every edit** made in Phase 3 (each was seen and
-  confirmed), treat the implementation as reviewed and proceed to Phase 4 cleanup
-  automatically — no separate confirmation needed.
-- If **any** Phase 3 edit was **auto-approved** — applied without a manual approval
-  prompt (e.g. `acceptEdits`/`dontAsk` mode, or permissions that allow the edit
-  silently) — the user has not actually reviewed that work. **Stop and ask** for
-  explicit confirmation before starting Phase 4.
+review at this gate, so their approval doubles as the gate: once the
+implementation is complete, treat it as reviewed and proceed to Phase 4 cleanup
+automatically — no separate confirmation needed. The user will interrupt if the
+implementation needs changes.
 
 ## The plan document
 
