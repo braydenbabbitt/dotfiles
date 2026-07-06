@@ -165,7 +165,10 @@
     "max-length": 60
   },
   "custom/spotify-prev": {
-    "format": "",
+    "exec": "~/.config/hypr/scripts/spotify-control.sh prev",
+    "return-type": "json",
+    "format": "{}",
+    "interval": 2,
     "on-click": "playerctl --player=spotify previous",
     "tooltip": true,
     "tooltip-format": "Previous"
@@ -180,7 +183,10 @@
     "tooltip": true
   },
   "custom/spotify-next": {
-    "format": "",
+    "exec": "~/.config/hypr/scripts/spotify-control.sh next",
+    "return-type": "json",
+    "format": "{}",
+    "interval": 2,
     "on-click": "playerctl --player=spotify next",
     "tooltip": true,
     "tooltip-format": "Next"

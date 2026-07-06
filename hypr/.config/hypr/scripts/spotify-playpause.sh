@@ -25,6 +25,12 @@ fi
 status="$(playerctl --player="$PLAYER" status 2>/dev/null || true)"
 status="$(printf '%s' "$status" | tr -d '\r\n')"
 
+# Spotify not running: emit empty so the button collapses via .empty CSS.
+if [ -z "$status" ]; then
+  echo '{"text": "", "class": "empty", "tooltip": ""}'
+  exit 0
+fi
+
 case "$status" in
   Playing) glyph="" ; class="playing" ;;   # show pause icon (click to pause)
   Paused)  glyph="" ; class="paused"  ;;   # show play icon (click to play)
