@@ -1,3 +1,5 @@
+Testing a change
+
 # Dotfiles managed with GNU Stow
 
 This repository contains my personal dotfiles for Linux, managed with [GNU Stow](https://www.gnu.org/software/stow/). Each directory corresponds to a category of configuration and is organized to make symlink management simple and reproducible.
