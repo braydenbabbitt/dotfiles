@@ -26,6 +26,8 @@
     "network",
     // "battery",
     // "bluetooth",
+    "custom/capslock",
+    "custom/mic",
     "pulseaudio",
     "backlight",
     "custom/temperature",
@@ -132,6 +134,24 @@
     "on-click": "pactl -- set-sink-mute 0 toggle",
     "tooltip": true,
     "tooltip-format": "Audio Volume: {volume}%"
+  },
+  "custom/mic": {
+    "exec": "~/.config/hypr/scripts/mic-mute.sh status",
+    "return-type": "json",
+    "format": "{}",
+    "interval": 3,
+    "signal": 10,
+    "on-click": "~/.config/hypr/scripts/mic-mute.sh toggle",
+    "on-click-right": "pavucontrol -t 4",
+    "tooltip": true
+  },
+  "custom/capslock": {
+    "exec": "~/.config/hypr/scripts/caps-lock.sh status",
+    "return-type": "json",
+    "format": "{}",
+    "interval": 2,
+    "signal": 11,
+    "tooltip": true
   },
   "custom/temperature": {
     "exec": "sensors | awk '/^Package id 0:/ {print int($4)}'",
