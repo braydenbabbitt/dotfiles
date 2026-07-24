@@ -46,7 +46,7 @@
 #pulseaudio,
 #backlight,
 #custom-temperature,
-#custom-meridian,
+#custom-claude,
 #custom-spotify,
 #custom-spotify-prev,
 #custom-spotify-playpause,
@@ -63,7 +63,7 @@
   border-width: 0px;
 }
 
-#custom-meridian.empty,
+#custom-claude.empty,
 #custom-spotify.empty,
 #custom-spotify-prev.empty,
 #custom-spotify-playpause.empty,
@@ -173,7 +173,7 @@
 #battery:hover,
 #pulseaudio:hover,
 #custom-temperature:hover,
-#custom-meridian:hover,
+#custom-claude:hover,
 #memory:hover,
 #cpu:hover,
 #clock:hover,

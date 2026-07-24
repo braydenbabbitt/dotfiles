@@ -33,7 +33,7 @@
     "custom/temperature",
     "memory",
     "cpu",
-    "custom/meridian",
+    "custom/claude",
     "clock"
   ],
   "hyprland/workspaces": {
@@ -218,9 +218,9 @@
     "format": "{}",
     "tooltip": false
   },
-  "custom/meridian": {
-    "exec": "~/.config/hypr/scripts/meridian-usage.sh",
-    "on-click": "~/.config/hypr/scripts/meridian-usage.sh cycle",
+  "custom/claude": {
+    "exec": "~/.config/hypr/scripts/claude-usage.sh",
+    "on-click": "~/.config/hypr/scripts/claude-usage.sh cycle",
     "return-type": "json",
     "format": "{}",
     "interval": 30,
