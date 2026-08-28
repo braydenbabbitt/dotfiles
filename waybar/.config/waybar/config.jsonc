@@ -25,7 +25,7 @@
   "modules-right": [
     "network",
     // "battery",
-    // "bluetooth",
+    "bluetooth",
     "custom/capslock",
     "custom/mic",
     "pulseaudio",
@@ -223,7 +223,11 @@
     "on-click": "~/.config/hypr/scripts/claude-usage.sh cycle",
     "return-type": "json",
     "format": "{}",
-    "interval": 30,
+    // 5 minutes, not seconds: api/oauth/usage rate limits after a handful of
+    // requests (429, retry-after ~5min), and this module runs once per output
+    // — 3 monitors means 3 near-simultaneous calls per tick. The script also
+    // caches the response on disk and serves the last good one on failure.
+    "interval": 300,
     "signal": 8,
     "tooltip": true
   },
@@ -260,9 +264,13 @@
     ]
   },
   "bluetooth": {
-    "format": "<span color='#00BFFF'>  </span>{status} ",
-    "format-connected": "<span color='#00BFFF'>  </span>{device_alias} ",
-    "format-connected-battery": "<span color='#00BFFF'>  </span>{device_alias}{device_battery_percentage}% ",
+    "format-off": "<span color='#808080'> 󰂲 </span>",
+    "format-disabled": "<span color='#808080'> 󰂲 </span>",
+    "on-click": "blueman-manager",
+    "on-click-right": "rfkill toggle bluetooth",
+    "format": "<span color='#00BFFF'>  </span>",
+    "format-connected": "<span color='#00BFFF'>  </span>",
+    "format-connected-battery": "<span color='#00BFFF'>  </span>",
     "tooltip-format": "{controller_alias}\t{controller_address}\n\n{num_connections} connected",
     "tooltip-format-connected": "{controller_alias}\t{controller_address}\n\n{num_connections} connected\n\n{device_enumerate}",
     "tooltip-format-enumerate-connected": "{device_alias}\t{device_address}",

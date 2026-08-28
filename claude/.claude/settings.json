@@ -1,4 +1,8 @@
 {
+  "permissions": {
+    "defaultMode": "default"
+  },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "SessionStart": [
       {
@@ -19,8 +23,8 @@
   },
   "alwaysThinkingEnabled": false,
   "effortLevel": "high",
+  "awaySummaryEnabled": false,
   "tui": "fullscreen",
   "skipWorkflowUsageWarning": true,
-  "skipAutoPermissionPrompt": true,
-  "awaySummaryEnabled": false
+  "skipAutoPermissionPrompt": true
 }

@@ -10,6 +10,20 @@
 # available bucket and marks the active one. The access token is refreshed via
 # the stored refresh token when it has expired, and written back so the CLI
 # stays in sync.
+#
+# Rate limiting. api/oauth/usage is aggressively rate limited — roughly a
+# handful of requests before it returns 429 with a retry-after measured in
+# minutes. Two things here keep us under that ceiling:
+#
+#   1. The response is cached on disk (CACHE_FILE) and reused for CACHE_TTL
+#      seconds. Waybar instantiates this module once PER OUTPUT, each with its
+#      own independent timer, so on a 3-monitor setup three copies fire at
+#      essentially the same instant. Without a shared cache that is 3x the
+#      request rate and enough to trip the limit in a single tick. The first
+#      instance to win the lock fetches; the others read what it wrote.
+#   2. On any fetch failure the last good response is served instead of empty
+#      output, so a 429 shows slightly stale numbers rather than making the
+#      module vanish for the whole retry-after window.
 
 set -u
 
@@ -18,7 +32,14 @@ USAGE_URL="https://api.anthropic.com/api/oauth/usage"
 TOKEN_URL="https://platform.claude.com/v1/oauth/token"
 CLIENT_ID="9d1c250a-e61b-44d9-88ed-5944d1962f5e"
 BETA_HEADER="anthropic-beta: oauth-2025-04-20"
-STATE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/waybar-claude-usage-tracker"
+CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}"
+STATE_FILE="$CACHE_DIR/waybar-claude-usage-tracker"
+CACHE_FILE="$CACHE_DIR/waybar-claude-usage-response.json"
+LOCK_FILE="$CACHE_DIR/waybar-claude-usage.lock"
+# Serve the cached response rather than refetching if it is younger than this.
+# Slightly under the module's poll interval so a tick isn't skipped outright,
+# while still collapsing the simultaneous per-output calls into one request.
+CACHE_TTL=240
 SIGNAL=8
 # The buckets to cycle through in the bar, in order. Buckets the plan doesn't
 # provide come back null from the endpoint and are skipped in the tooltip.
@@ -56,6 +77,46 @@ if [ "${1:-}" = "cycle" ]; then
   pkill -RTMIN+$SIGNAL waybar 2>/dev/null || true
   exit 0
 fi
+
+mkdir -p "$CACHE_DIR"
+
+cache_age() {
+  local mtime
+  mtime=$(stat -c %Y "$CACHE_FILE" 2>/dev/null) || { echo 999999; return; }
+  echo $(( $(date +%s) - mtime ))
+}
+
+# Echo the cached response if it is valid JSON, else nothing.
+read_cache() {
+  [ -f "$CACHE_FILE" ] || return 1
+  local c
+  c=$(cat "$CACHE_FILE" 2>/dev/null) || return 1
+  printf '%s' "$c" | jq -e . >/dev/null 2>&1 || return 1
+  printf '%s' "$c"
+}
+
+# A fresh cache short-circuits everything below, including the credential read
+# and the token-expiry check — no point touching either if we aren't fetching.
+response=""
+if [ "$(cache_age)" -lt "$CACHE_TTL" ]; then
+  response=$(read_cache) || response=""
+fi
+
+if [ -z "$response" ]; then
+# ---- cache miss: one instance fetches, the rest reuse its result ----------
+# Serialize the per-output instances. Whoever gets the lock does the fetch;
+# the others block briefly and then re-read the cache it just wrote, turning
+# N simultaneous requests into one.
+exec 9>"$LOCK_FILE"
+flock 9 2>/dev/null || true
+
+# The lock holder may have just refreshed the cache while we waited.
+if [ "$(cache_age)" -lt "$CACHE_TTL" ]; then
+  response=$(read_cache) || response=""
+fi
+fi
+
+if [ -z "$response" ]; then
 
 [ -f "$CREDS" ] || empty
 
@@ -104,9 +165,18 @@ response=$(curl -s -m 10 -f "$USAGE_URL" \
   -H "Authorization: Bearer $access_token" \
   -H "$BETA_HEADER" 2>/dev/null) || response=""
 
-if [ -z "$response" ] || ! printf '%s' "$response" | jq -e . >/dev/null 2>&1; then
-  empty
+if [ -n "$response" ] && printf '%s' "$response" | jq -e . >/dev/null 2>&1; then
+  # Write via temp file + rename so a reader never sees a partial response.
+  tmp=$(mktemp "$CACHE_FILE.XXXXXX" 2>/dev/null) && {
+    printf '%s\n' "$response" > "$tmp" && mv -f "$tmp" "$CACHE_FILE" || rm -f "$tmp"
+  }
+else
+  # Fetch failed (429, network blip, expired token). Fall back to the last good
+  # response regardless of age — stale numbers beat a module that disappears.
+  response=$(read_cache) || empty
 fi
+
+fi  # end cache-miss branch
 
 label_for() {
   case "$1" in
