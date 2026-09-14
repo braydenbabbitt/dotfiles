@@ -31,12 +31,52 @@ LEFT="HDMI-A-1"
 CENTER="DP-2"
 RIGHT="DP-3"
 
-# Canonical monitor configs (must match hyprland.conf)
+# Canonical monitor geometry (must match hyprland.lua) as "mode position scale".
 declare -A MON_CONFIG=(
-	["$LEFT"]="$LEFT,2560x1440@144,0x0,1"
-	["$CENTER"]="$CENTER,2560x1440@144,2560x0,1"
-	["$RIGHT"]="$RIGHT,2560x1440@144,5120x0,1"
+	["$LEFT"]="2560x1440@144 0x0 1"
+	["$CENTER"]="2560x1440@144 2560x0 1"
+	["$RIGHT"]="2560x1440@144 5120x0 1"
 )
+
+# Hyprland 0.55+ uses a Lua config, and `hyprctl keyword` is rejected by the
+# non-legacy parser ("keyword can't work with non-legacy parsers. Use eval.").
+# Monitor changes now go through `hyprctl eval` with an hl.monitor() call.
+# `disabled = false` is required explicitly: supplying a mode/position alone does
+# NOT re-enable a monitor that was previously disabled, so restore silently no-ops
+# without it.
+apply_monitor() {
+	local mon="$1" mode position scale
+	read -r mode position scale <<<"${MON_CONFIG[$mon]}"
+	$HYPRCTL eval "hl.monitor({ output = \"$mon\", mode = \"$mode\", position = \"$position\", scale = $scale, disabled = false })" >/dev/null
+}
+
+disable_monitor() {
+	$HYPRCTL eval "hl.monitor({ output = \"$1\", disabled = true })" >/dev/null
+}
+
+# Persistent workspaces belonging to each monitor (must match hyprland.lua).
+declare -A PERSISTENT_WS=(
+	["$LEFT"]="1 2"
+	["$CENTER"]="6 7"
+	["$RIGHT"]="11 12"
+)
+
+# Disabling a monitor does not retire its persistent workspaces — Hyprland
+# relocates them onto a surviving monitor, so the bar keeps showing e.g. R1/R2
+# on the left screen with nothing in them. Dropping persistence *before* the
+# monitor goes away lets those workspaces disappear instead; restoring it brings
+# them back on the right monitor.
+set_persistence() {
+	local mon="$1" state="$2" ws
+	for ws in ${PERSISTENT_WS[$mon]}; do
+		$HYPRCTL eval "hl.workspace_rule({ workspace = \"$ws\", monitor = \"$mon\", persistent = $state })" >/dev/null
+	done
+}
+
+# Silent move, the Lua equivalent of `dispatch movetoworkspacesilent <ws>,address:<addr>`.
+move_window_silent() {
+	$HYPRCTL dispatch "hl.dsp.window.move({ window = \"address:$2\", workspace = \"$1\", silent = true })" >/dev/null
+}
 
 TARGET_LETTER="${1:-}"
 case "$TARGET_LETTER" in
@@ -50,9 +90,13 @@ R) TARGET_MON="$RIGHT"; BASE=11; LABEL="Right" ;;
 esac
 
 enable_all_monitors() {
-	$HYPRCTL keyword monitor "${MON_CONFIG[$LEFT]}"
-	$HYPRCTL keyword monitor "${MON_CONFIG[$CENTER]}"
-	$HYPRCTL keyword monitor "${MON_CONFIG[$RIGHT]}"
+	apply_monitor "$LEFT"
+	apply_monitor "$CENTER"
+	apply_monitor "$RIGHT"
+	# Re-arm persistence now that every monitor is back.
+	set_persistence "$LEFT" true
+	set_persistence "$CENTER" true
+	set_persistence "$RIGHT" true
 }
 
 # Move each recorded window back to its original workspace, then clear state.
@@ -63,7 +107,7 @@ restore_windows() {
 		[ -n "$addr" ] || continue
 		# Only move windows that still exist.
 		if $HYPRCTL clients -j | jq -e --arg a "$addr" '.[] | select(.address==$a)' >/dev/null 2>&1; then
-			$HYPRCTL dispatch movetoworkspacesilent "$ws,address:$addr"
+			move_window_silent "$ws" "$addr"
 		fi
 	done
 }
@@ -127,24 +171,26 @@ done <<<"$SNAPSHOT"
 SLOT="$BASE"
 for addr in "${ON_TARGET[@]:-}"; do
 	[ -n "$addr" ] || continue
-	$HYPRCTL dispatch movetoworkspacesilent "$SLOT,address:$addr"
+	move_window_silent "$SLOT" "$addr"
 	SLOT="$((SLOT + 1))"
 done
 for addr in "${OFF_TARGET[@]:-}"; do
 	[ -n "$addr" ] || continue
-	$HYPRCTL dispatch movetoworkspacesilent "$SLOT,address:$addr"
+	move_window_silent "$SLOT" "$addr"
 	SLOT="$((SLOT + 1))"
 done
 
-# 4. Disable the other two monitors.
+# 4. Disable the other two monitors. Persistence is dropped first so their
+#    workspaces retire rather than migrating onto the target monitor.
 for mon in "$LEFT" "$CENTER" "$RIGHT"; do
 	if [ "$mon" != "$TARGET_MON" ]; then
-		$HYPRCTL keyword monitor "$mon,disable"
+		set_persistence "$mon" false
+		disable_monitor "$mon"
 	fi
 done
 
 # 5. Focus the first workspace on the target monitor.
-$HYPRCTL dispatch workspace "$BASE"
+$HYPRCTL dispatch "hl.dsp.focus({ workspace = $BASE })" >/dev/null
 
 WS_COUNT="$((SLOT - BASE))"
 notify-send "Single monitor" "$LABEL — $WS_COUNT workspace(s)"

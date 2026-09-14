@@ -12,4 +12,5 @@ HYPRCTL="/usr/bin/hyprctl"
 # Monitor name mapping — update these if monitor ports change
 CENTER="DP-2"
 
-$HYPRCTL keyword monitor "$CENTER,1920x1080@144,0x0,1"
+# `hyprctl keyword` is rejected under Hyprland 0.55+'s Lua parser; use eval.
+$HYPRCTL eval "hl.monitor({ output = \"$CENTER\", mode = \"1920x1080@144\", position = \"0x0\", scale = 1 })"

@@ -18,5 +18,5 @@
 # group takes down the compositor. Use a per-app `pkill -x <name>` instead.
 set -u
 
-hyprctl dispatch killactive "" >/dev/null 2>&1
+hyprctl dispatch 'hl.dsp.window.close()' >/dev/null 2>&1
 exit 0

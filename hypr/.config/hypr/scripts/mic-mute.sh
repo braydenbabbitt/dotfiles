@@ -81,14 +81,18 @@ cmd_status() {
         tooltip="Mic: mixed ($muted/$total muted)"
     fi
 
-    # Per-source detail in the tooltip.
-    local s state line
+    # Per-source detail in the tooltip; ► marks the default input device
+    # (right-click cycles it via audio-devices.sh).
+    local s state line marker default_source
+    default_source=$(pactl get-default-source 2>/dev/null || true)
     while IFS= read -r s; do
         [ -z "$s" ] && continue
         state=$(pactl get-source-mute "$s" 2>/dev/null | awk '{print $2}')
         [ "$state" = "yes" ] && line="muted" || line="on"
-        tooltip="$tooltip"$'\n'"  • $s: $line"
+        [ "$s" = "$default_source" ] && marker="►" || marker="•"
+        tooltip="$tooltip"$'\n'"  $marker $s: $line"
     done < <(real_sources)
+    tooltip="$tooltip"$'\n\n'"right-click: next input device"
 
     # Emit waybar JSON. Escape backslashes/quotes, and encode newlines as \n.
     esc() { printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g'; }

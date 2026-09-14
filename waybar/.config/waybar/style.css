@@ -43,7 +43,7 @@
 #custom-reboot,
 #bluetooth,
 #battery,
-#pulseaudio,
+#custom-audio,
 #backlight,
 #custom-temperature,
 #custom-claude,
@@ -161,7 +161,7 @@
 }
 
 #custom-temperature.critical,
-#pulseaudio.muted {
+#custom-audio.muted {
   color: #ff0000;
   padding-top: 0;
 }
@@ -171,7 +171,7 @@
 /*#tray:hover,*/
 #backlight:hover,
 #battery:hover,
-#pulseaudio:hover,
+#custom-audio:hover,
 #custom-temperature:hover,
 #custom-claude:hover,
 #memory:hover,

@@ -8,8 +8,8 @@ set -u
 
 # Spotify's window class is "Spotify"; match case-insensitively to be safe.
 if hyprctl -j clients 2>/dev/null | grep -iq '"class": *"spotify"'; then
-  hyprctl dispatch focuswindow 'class:(?i)spotify' >/dev/null 2>&1
+  hyprctl dispatch 'hl.dsp.focus({ window = "class:(?i)spotify" })' >/dev/null 2>&1
 else
-  hyprctl dispatch exec spotify-launcher >/dev/null 2>&1 \
+  hyprctl dispatch 'hl.dsp.exec_cmd("spotify-launcher")' >/dev/null 2>&1 \
     || spotify-launcher >/dev/null 2>&1 &
 fi

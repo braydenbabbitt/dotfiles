@@ -4,12 +4,13 @@
 LEFT="HDMI-A-1"
 
 MONITOR="$LEFT"
-MONITOR_CONFIG="$LEFT,2560x1440@144,0x0,1"
 
+# `hyprctl keyword` is rejected under Hyprland 0.55+'s Lua parser; monitor
+# changes go through `hyprctl eval` with an hl.monitor() call.
 if hyprctl monitors | grep -q "^Monitor $MONITOR"; then
-	hyprctl keyword monitor "$MONITOR,disable"
+	hyprctl eval "hl.monitor({ output = \"$MONITOR\", disabled = true })"
 	notify-send "Monitor" "$MONITOR disabled"
 else
-	hyprctl keyword monitor "$MONITOR_CONFIG"
+	hyprctl eval "hl.monitor({ output = \"$MONITOR\", mode = \"2560x1440@144\", position = \"0x0\", scale = 1, disabled = false })"
 	notify-send "Monitor" "$MONITOR enabled"
 fi

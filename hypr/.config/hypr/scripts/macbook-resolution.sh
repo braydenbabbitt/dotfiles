@@ -16,4 +16,5 @@ CENTER="DP-2"
 
 CENTER_MONITOR="$CENTER"
 
-$HYPRCTL keyword monitor "$CENTER_MONITOR,3024x1964@60,0x0,2"
+# `hyprctl keyword` is rejected under Hyprland 0.55+'s Lua parser; use eval.
+$HYPRCTL eval "hl.monitor({ output = \"$CENTER_MONITOR\", mode = \"3024x1964@60\", position = \"0x0\", scale = 2 })"

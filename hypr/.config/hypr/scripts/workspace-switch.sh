@@ -22,8 +22,9 @@ esac
 
 WORKSPACE=$((NUM + OFFSET))
 
+# Hyprland 0.55+ uses a Lua config; dispatchers take their hl.dsp.* form.
 if [ "$ACTION" = "move" ]; then
-	hyprctl dispatch movetoworkspace "$WORKSPACE"
+	hyprctl dispatch "hl.dsp.window.move({ workspace = $WORKSPACE })"
 else
-	hyprctl dispatch workspace "$WORKSPACE"
+	hyprctl dispatch "hl.dsp.focus({ workspace = $WORKSPACE })"
 fi

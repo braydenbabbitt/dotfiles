@@ -28,8 +28,8 @@
     "bluetooth",
     "custom/capslock",
     "custom/mic",
-    "pulseaudio",
-    "backlight",
+    "custom/audio",
+    // "backlight",
     "custom/temperature",
     "memory",
     "cpu",
@@ -114,26 +114,20 @@
     "format-icons": ["󰂎", "󰁼", "󰁿", "󰂁", "󰁹"],
     "tooltip": true
   },
-  "pulseaudio": {
-    "format": "<span color='#00FF7F'>{icon}</span>{volume}% ",
-    "format-muted": "<span color='#FF4040'> 󰖁 </span>0% ",
-    "format-icons": {
-      "headphone": "<span color='#BF00FF'>  </span>",
-      "hands-free": "<span color='#BF00FF'>  </span>",
-      "headset": "<span color='#BF00FF'>  </span>",
-      "phone": "<span color='#00FFFF'>  </span>",
-      "portable": "<span color='#00FFFF'>  </span>",
-      "car": "<span color='#FFA500'>  </span>",
-      "default": [
-        "<span color='#808080'>  </span>",
-        "<span color='#FFFF66'>  </span>",
-        "<span color='#00FF7F'>  </span>"
-      ]
-    },
-    "on-click-right": "pavucontrol -t 3",
-    "on-click": "pactl -- set-sink-mute 0 toggle",
-    "tooltip": true,
-    "tooltip-format": "Audio Volume: {volume}%"
+  // Replaces the built-in "pulseaudio" module: the tooltip lists every output
+  // device (hover to see, default marked ►) and right-click switches to the
+  // next one, moving live streams along. No "interval"/"return-type" polling —
+  // the script streams a JSON line per pactl event, so updates are instant.
+  "custom/audio": {
+    "exec": "~/.config/hypr/scripts/audio-devices.sh watch",
+    "return-type": "json",
+    "format": "{}",
+    "on-click": "pactl set-sink-mute @DEFAULT_SINK@ toggle",
+    "on-click-right": "~/.config/hypr/scripts/audio-devices.sh cycle sink",
+    "on-click-middle": "pavucontrol -t 3",
+    "on-scroll-up": "pactl set-sink-volume @DEFAULT_SINK@ +2%",
+    "on-scroll-down": "pactl set-sink-volume @DEFAULT_SINK@ -2%",
+    "tooltip": true
   },
   "custom/mic": {
     "exec": "~/.config/hypr/scripts/mic-mute.sh status",
@@ -142,7 +136,8 @@
     "interval": 3,
     "signal": 10,
     "on-click": "~/.config/hypr/scripts/mic-mute.sh toggle",
-    "on-click-right": "pavucontrol -t 4",
+    "on-click-right": "~/.config/hypr/scripts/audio-devices.sh cycle source",
+    "on-click-middle": "pavucontrol -t 4",
     "tooltip": true
   },
   "custom/capslock": {

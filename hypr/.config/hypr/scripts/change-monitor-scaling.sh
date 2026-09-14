@@ -25,5 +25,6 @@ if [ -z "$RESOLUTION" ]; then RESOLUTION="2560x1440"; fi
 if [ -z "$REFRESH" ]; then REFRESH="144.00"; fi
 if [ -z "$POSITION" ]; then POSITION="2560x0"; fi
 
-hyprctl keyword monitor "$MONITOR,$RESOLUTION@$REFRESH,$POSITION,$SCALING"
+# `hyprctl keyword` is rejected under the Lua parser; monitor changes go via eval.
+hyprctl eval "hl.monitor({ output = \"$MONITOR\", mode = \"$RESOLUTION@$REFRESH\", position = \"$POSITION\", scale = $SCALING })"
 notify-send "Monitor Scaling" "Set scaling of $MONITOR to $SCALING with $RESOLUTION@$REFRESH at $POSITION"
