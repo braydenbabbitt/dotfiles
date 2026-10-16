@@ -56,7 +56,9 @@ if [ -z "$plan_docs" ] && [ -z "$matches" ]; then
   echo "tether protocol at $protocol."
   echo "There is nothing to resume right now. When you begin any task that spans more than a"
   echo "single edit, you MUST start at Phase 1 (create .plans/<name>.md) and advance through"
-  echo "the phases, pausing for user confirmation at each phase gate."
+  echo "the phases, pausing for user confirmation at each phase gate. Exemptions (mechanical"
+  echo "changes, command/skill-driven work, single-file changes) are listed under \"When to"
+  echo "use this protocol\"."
   exit 0
 fi
 

@@ -67,6 +67,14 @@ phase is recorded in the plan document (see below).
    edit**. The set of remaining markers is the live to-do list; it shrinks to
    zero as the work completes.
 
+   **"One at a time" is about write operations, not conversation turns.** It
+   means each site is landed by its own write/edit tool call — for test markers,
+   **one test case per write**, never several cases batched into a single edit.
+   It does **not** mean stopping between sites: do not report back, ask
+   permission, or otherwise re-prompt the user between markers. Work straight
+   through all of them, one write per site, and only surface something if you
+   hit a genuine blocker.
+
    When a test fails here, fix the source, not the expectation. A test case's
    expected behavior was fixed in Phase 2 and may be altered only as an
    intentional design change (recorded in the plan document) — never edited to
@@ -241,6 +249,17 @@ work: no plan document, no `TODO(plan:<name>)` markers, no phase gates. Commands
 and skills carry their own workflow, and tether scaffolding would fight it. This
 only suppresses tether for the command/skill-driven work itself — ordinary
 multi-step requests in the same session still follow the protocol as normal.
+
+**Mechanical changes — skip tether.** If the change involves no design
+decisions, skip the protocol entirely, no matter how many files or edits it
+touches. A change is mechanical when it is fully specified up front and every
+site is the same rote transformation. Examples: renaming a symbol or file,
+moving code without changing it, a find-and-replace, bumping a dependency
+version, reformatting, fixing lint across the codebase, or applying an already
+decided pattern uniformly. Such work is easy to redo from scratch after an
+interruption, so a plan document and markers would only add overhead. If a site
+turns out to need real judgment partway through, the change is no longer
+mechanical: stop and start tether at Phase 1 for the rest of the work.
 
 **Single-file changes — ask first.** If the whole change is contained to a
 single file, the protocol is likely overkill. Before setting up a plan document,
