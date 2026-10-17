@@ -216,6 +216,9 @@ hl.config({
 	misc = {
 		force_default_wallpaper = -1, -- Set to 0 or 1 to disable the anime mascot wallpapers
 		disable_hyprland_logo = true, -- Disables the random hyprland logo / anime girl background
+		-- Lets scripts/hyprlock-respawn.sh relaunch hyprlock onto an orphaned lock after
+		-- a crash, instead of leaving the session stuck on the "lock app died" screen.
+		allow_session_lock_restore = true,
 	},
 })
 

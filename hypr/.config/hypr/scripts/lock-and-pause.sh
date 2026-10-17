@@ -1,4 +1,4 @@
 #!/bin/bash
 
 playerctl pause
-hyprlock
+~/.config/hypr/scripts/hyprlock-respawn.sh
